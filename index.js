@@ -12,6 +12,28 @@ app.use(express.json());
 app.use(cors());
 app.use(logger);
 
+
+async function stream2string(stream, onMessage) {
+  if (!stream) {
+    return '';
+  }
+
+  const reader = stream.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let result = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    const trunk = decoder.decode(value, { stream: true });
+    onMessage?.(trunk);
+    result += trunk;
+  }
+  reader.releaseLock();
+  return result;
+}
+
 // 首页
 app.get("/", async (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
@@ -26,13 +48,17 @@ app.post("/api/chat", async (req, res) => {
     // 直接透传，组装逻辑完全由前端实现
     body: JSON.stringify(req.body),
   });
-  console.log(result.body);
-  console.log('[-----------]');
+
   console.log(result.ok);
-  res.send({
-    code: 0,
-    data: result.body
-  })
+  console.log(result.body);
+
+  res.setHeader('Content-Type', 'application/octet-stream');
+
+  const r = await stream2string(result.body, (v) => {
+    res.write(v);
+  });
+
+  res.end();
 });
 
 // 获取计数
