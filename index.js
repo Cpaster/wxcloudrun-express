@@ -18,7 +18,6 @@ app.get("/", async (req, res) => {
 });
 
 app.post("/api/chat", async (req, res) => {
-  console.log(res);
   const result = await fetch(`https://www.webcomponent.top/api/chat`, {
     method: 'POST',
     headers: {
@@ -46,11 +45,11 @@ app.post("/api/chat", async (req, res) => {
 // });
 
 // // 小程序调用，获取微信 Open ID
-// app.get("/api/wx_openid", async (req, res) => {
-//   if (req.headers["x-wx-source"]) {
-//     res.send(req.headers["x-wx-openid"]);
-//   }
-// });
+app.get("/api/wx_openid", async (req, res) => {
+  if (req.headers["x-wx-source"]) {
+    res.send(req.headers["x-wx-openid"]);
+  }
+});
 
 const port = process.env.PORT || 80;
 
